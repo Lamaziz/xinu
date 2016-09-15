@@ -14,7 +14,7 @@ shellcmd xsh_hello(int nargs, char *args[]) {
 	if (nargs == 2 && strncmp(args[1], "--help", 7) == 0) {
 		printf("Usage: %s\n\n", args[0]);
 		printf("Description:\n");
-		printf("\tDisplays a simple hello command which will take a single string argumen and prints:  Hello <string>, Welcome to the world of Xinu!!t\n");
+		printf("\tDisplays a simple hello command which will take a single string argument and prints:  Hello <string>, Welcome to the world of Xinu!!\n");
 		printf("Options (one per invocation):\n");
 		printf("\t<string>\tUser will enter a single string\n");
 		printf("\t--help\tdisplay this help and exit\n");
