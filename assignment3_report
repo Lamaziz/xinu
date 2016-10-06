@@ -1,0 +1,101 @@
+1> How exactly is sychronization achieved using semaphore in our assignnment?
+
+A semaphore gets initialized by the value we pass to it. The system call Wait() decrements the semaphore by one. The system call Signal() increments the semaphore by one. 
+
+We have used two semaphores "consumed" and "produced". Consumed semaphore is initialized with 1, so wait(consumed) will not stop the producer process for the first time. Produced semaphore is initialized with 0, so wait(produced) will stop the consumer process for the first time until it receives a signal (on produced semaphore) from the producer process. 
+
+When producer process is finished with producing a value and printing the same to console, it makes a signal on "produced" semaphore. As a result the value of "produced" semaphore is set to 1. The consumer process waiting on "produced" semaphore receives the updated value and it enters its critical section and at the same time sets the value of "produced" semaphore to 0. In its critical section, consumer process consumes the produced value, followed by signalling the "consumed" semaphore. As a result the value of "consumed" semaphore is set to 1. The producer process waiting on the "consumed" semaphore receives the updated value, and it enters its critical section while setting the value of "consumed" semaphore to 0. In its critical section, producer process produces new value and prints this new value to console. After this the producer process again signals the "produced" semaphore so that consumer process can stop waiting and start consuming the produced value.
+
+This way the the synchronization is maintained between two processes namely - producer and consumer. And it is assured that each value created by the producer is absorbed by the consumer.
+
+Towards the end, inside the critical section, when consumer consumes the last produced value (and printing the same on console), it deletes the semaphores and exits from the function it is operating on. The producer process has already exited the function it is operating on (i.e., the producer() method) since it has finished producing all the values and before exiting it signaled the "produced" semaphore so that consumer process can consume the last value.
+
+
+
+
+2> Can the above sychronization be achieved with just one semphore? Why or why not?
+
+We can't implement the above synchronization with just one semaphore.
+
+Sample output if we use just use one semaphore:
+
+produced : 1
+produced : 2
+produced : 3 
+consumed : 3  // till here, it took some time for consumer process to originate, start running, and wait for the signal;
+produced : 4
+consumed : 4
+produced : 5
+consumed : 5
+produced : 6
+consumed : 6
+produced : 7
+consumed : 7
+produced : 8
+consumed : 8
+produced : 9
+consumed : 9
+produced : 10
+consumed : 10
+produced : 11
+consumed : 11
+produced : 12
+consumed : 12
+produced : 13
+consumed : 13
+produced : 14
+consumed : 14
+produced : 15
+consumed : 15
+produced : 16
+consumed : 16
+produced : 17
+consumed : 17
+produced : 18
+consumed : 18
+produced : 19
+consumed : 19
+produced : 20
+consumed : 20
+xsh $ 
+
+
+For above example, let T is the time taken for creating and resuming the consumer process (such that it waits for a signal from producer process). In time T, producer ran for 12 times, producing and printing new values to console. At T+1 time both are ready to execute based on next signal (on common semaphore instance), and it is the consumer process that immedieately resumes from waiting as soon as the producer process signals.
+
+If we just use one semaphore. Some initial values will not be consumed by the consumer process until it is created and resumed. Producer process is created & resumed first and then the same happens with consumer process. As we are using same semaphore for both, so producer process runs multiple times until consumer starts and waits for a signal from the consumer process. Once consumer resumes, all the produced values are getting consumed by it. So we can't practice synchronization with one semaphore.
+
+
+
+
+Q3>  Write down all the functions in the project. 
+
+Following functions are "created/ updated" to demostrate producer-consumer problem:
+<METHODS>                                                     <METHOD-DEFINITION-LOCATION>
+void producer(int count);                                     bbb-xinu/apps
+void consumer(int count);                                     bbb-xinu/apps
+shellcmd xsh_prodcons(int nargs, char *args[]);               bbb-xinu/shell
+
+
+
+
+Q4>  Note the tasks of the group members who developed the various components
+<TASKS>                                          <USER>
+update prodcons.h                                 Lama
+update prodcons.c                                 Karun
+update produce.c                                    Lama
+update consume.c                                  Karun
+update shell.c, shprototypes.h       Lama
+test the program                                    Lama
+make Report file                                     Karun
+
+
+
+
+REFERENCES USED:
+Concepts: 
+	Operating System Design: The Xinu Approach, Second Edition 2nd Edition by Douglas Comer
+
+Programming: 
+	http://www.cprogramming.com/
+
+

@@ -1,45 +1,39 @@
-#include <xinu.h>
 #include <prodcons.h>
 
-int n;                 //Definition for global variable 'n'
-/*Now global variable n will be on Heap so it is accessible all the processes i.e. consume and produce*/
+int n;                 // Definition for global variable 'n'. Global variables are by default initialized to 0.
 
-shellcmd xsh_prodcons(int nargs, char *args[])
-{
-  //Argument verifications and validations
+sid32 consumed, produced;     // Defination for semaphores
+
+shellcmd xsh_prodcons(int nargs, char *args[]) {
+
+	char* countStr = NULL;
+	int intValue;
+
+
 	/* Output info for '--help' argument */
 	if (nargs == 2 && strncmp(args[1], "--help", 7) == 0) {
 		printf("Usage: %s\n\n", args[0]);
 		printf("Description:\n");
-		printf("\t It is a demo pf producer and concumer problem.It will run producer and consumer procss fo N times whwew N is defined by user ,otheewise it will run 2000 times!\n");
+		printf("\tCreates two synchronized processes named producer and consumer which will take integer count as an optional argument\n");
 		printf("Options (one per invocation):\n");
-		printf("\t<integer>\t its option for user to write an integer N\n");
-		printf("\t--help\tdisplay this help and exit\n");
+		printf("\t[unsigned-integer]\t:\t(OPTINAL PARAMETER) set the producer consumer loop for that many times\n");
+		printf("\t[nothing]\t\t:\twith no argument, the producer consuer loop will run 2000 times\n");
+		printf("\t--help\t\t\t:\tdisplay this help and exit\n");
+		printf("\n");
 		return 0;
 	}
 
-	/* Check argument count */
+
+	//Argument verifications and validations
 	if (nargs > 2) {
 		fprintf(stderr, "%s: too many arguments\n", args[0]);
-		fprintf(stderr, "Try '%s --help' for more information\n",
-			args[0]);
 		return 1;
 	}
 
-  char* countStr = NULL;
-  int intValue;
-  int count = 2000;             //local varible to hold count
-  //check args[1] if present assign value to count
+	int count = 2000;             //local varible to hold count
+
+   	//check args[1] if present assign value to count
 	if (nargs == 2) {
-		/*
-			args[1] =	20		// correct input, everthing else is bad input
-						+20
-						-20
-						abc
-						2.95
-						-2.95
-						+2.95
-		*/
 		countStr = &args[1][0];
 		intValue = 0;
 		while(*countStr != '\0') {
@@ -54,10 +48,14 @@ shellcmd xsh_prodcons(int nargs, char *args[])
 		count = intValue;
 		countStr = NULL;
 	}
-  
-//create the process producer and consumer and put them in ready queue.
-  //Look at the definations of function create and resume in the system folder for reference.      
-  resume( create(producer, 1024, 20, "producer", 1, count));
-  resume( create(consumer, 1024, 20, "consumer", 1, count));
-  return (0);
+
+
+	/*Initialise semaphores*/
+	produced = semcreate(0);
+	consumed = semcreate(1);
+
+	resume( create(producer, 1024, 20, "producer", 1, count) );
+	resume( create(consumer, 1024, 20, "consumer", 1, count) );
+	return 0;
 }
+
